@@ -1,43 +1,97 @@
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, Paperclip, Mic, FileText, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useAppStore } from '@/store/useAppStore';
+import { ChatLoadingBubble, ChatHistoryLoader } from '@/components/ui/loading-states';
 
 const Chat = () => {
   const [message, setMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const { 
+    chatSessions, 
+    activeChatId, 
+    files, 
+    selectedFileId, 
+    isTyping,
+    addMessage, 
+    setIsTyping,
+    addChatSession,
+    setActiveChatId,
+    selectFile
+  } = useAppStore();
 
-  const messages = [
-    {
-      id: 1,
-      type: 'user',
-      content: 'What are the main conclusions about climate change impacts on agriculture?',
-      timestamp: '2:30 PM'
-    },
-    {
-      id: 2,
-      type: 'ai',
-      content: 'Based on the research papers you\'ve uploaded, there are several key conclusions about climate change impacts on agriculture:\n\n1. **Temperature Changes**: Rising temperatures are affecting crop yields, with heat-sensitive crops like wheat showing 10-25% reduced productivity in warmer regions.\n\n2. **Water Availability**: Changing precipitation patterns are creating both drought and flood conditions, disrupting traditional farming cycles.\n\n3. **Pest and Disease Pressure**: Warmer temperatures are expanding the range of agricultural pests and plant diseases.',
-      timestamp: '2:31 PM',
-      sources: [
-        { title: 'Climate Agriculture Report 2024', page: '15-17' },
-        { title: 'Global Food Security Analysis', page: '23-25' }
-      ]
-    }
-  ];
+  const activeChat = chatSessions.find(chat => chat.id === activeChatId);
+  const selectedFile = files.find(file => file.id === selectedFileId);
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      setIsTyping(true);
-      // Simulate AI response
-      setTimeout(() => {
-        setIsTyping(false);
-      }, 2000);
-      setMessage('');
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [activeChat?.messages, isTyping]);
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) return;
+
+    const messageId = Date.now().toString();
+    const userMessage = {
+      id: messageId,
+      type: 'user' as const,
+      content: message,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    // Create new chat if none exists
+    if (!activeChatId) {
+      const newChatId = Date.now().toString();
+      const newChat = {
+        id: newChatId,
+        title: message.slice(0, 50) + (message.length > 50 ? '...' : ''),
+        messages: [userMessage],
+        documentId: selectedFileId || undefined,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      addChatSession(newChat);
+    } else {
+      addMessage(activeChatId, userMessage);
     }
+
+    setMessage('');
+    setIsTyping(true);
+
+    // Simulate AI response
+    setTimeout(() => {
+      const aiMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai' as const,
+        content: `Based on your question about "${message}", I can provide relevant information from the uploaded document. This is a simulated response that would normally come from Gemini Flash 2.5 with RAG capabilities.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        sources: selectedFile ? [
+          { title: selectedFile.name, page: '1-3' }
+        ] : undefined
+      };
+      
+      const currentChatId = activeChatId || chatSessions[0]?.id;
+      if (currentChatId) {
+        addMessage(currentChatId, aiMessage);
+      }
+      setIsTyping(false);
+    }, 2000);
+  };
+
+  const handleChatSelect = (chatId: string) => {
+    setActiveChatId(chatId);
+  };
+
+  const handleFileSelect = (fileId: string) => {
+    selectFile(fileId);
   };
 
   return (
@@ -53,27 +107,53 @@ const Chat = () => {
           </div>
           
           {/* Document Selector */}
-          <div className="bg-blue-50 rounded-lg p-3 mb-4">
-            <div className="flex items-center space-x-2">
-              <FileText className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">Climate Research Papers (3)</span>
+          {selectedFile && (
+            <div className="bg-blue-50 rounded-lg p-3 mb-4">
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900 truncate">
+                  {selectedFile.name}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* File Selector Dropdown */}
+          {files.length > 0 && (
+            <select 
+              className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              value={selectedFileId || ''}
+              onChange={(e) => handleFileSelect(e.target.value)}
+            >
+              <option value="">Select a document...</option>
+              {files.filter(f => f.status === 'completed').map(file => (
+                <option key={file.id} value={file.id}>{file.name}</option>
+              ))}
+            </select>
+          )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {[
-            'Climate change and agriculture impacts',
-            'Food security analysis discussion',
-            'Temperature effects on crop yields',
-            'Water availability patterns',
-            'Agricultural adaptation strategies'
-          ].map((chat, index) => (
-            <Card key={index} className="p-3 hover:bg-gray-50 cursor-pointer border-0 shadow-sm">
-              <p className="text-sm text-gray-700 font-medium truncate">{chat}</p>
-              <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
-            </Card>
-          ))}
+        <div className="flex-1 overflow-y-auto">
+          {chatSessions.length === 0 ? (
+            <ChatHistoryLoader />
+          ) : (
+            <div className="p-4 space-y-3">
+              {chatSessions.map((chat) => (
+                <Card 
+                  key={chat.id} 
+                  className={`p-3 cursor-pointer border-0 shadow-sm transition-colors ${
+                    chat.id === activeChatId ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => handleChatSelect(chat.id)}
+                >
+                  <p className="text-sm text-gray-700 font-medium truncate">{chat.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(chat.updatedAt).toLocaleString()}
+                  </p>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -84,7 +164,9 @@ const Chat = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">AI Research Assistant</h1>
-              <p className="text-sm text-gray-600">Analyzing 3 climate research documents</p>
+              <p className="text-sm text-gray-600">
+                {selectedFile ? `Analyzing ${selectedFile.name}` : `Ready to help with ${files.length} documents`}
+              </p>
             </div>
             <Badge variant="secondary" className="bg-green-100 text-green-800">
               Online
@@ -94,7 +176,7 @@ const Chat = () => {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {messages.map((msg) => (
+          {activeChat?.messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-2xl ${msg.type === 'user' ? 'order-2' : 'order-1'}`}>
                 <div className={`rounded-2xl px-4 py-3 ${
@@ -127,17 +209,8 @@ const Chat = () => {
             </div>
           ))}
 
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
-              </div>
-            </div>
-          )}
+          {isTyping && <ChatLoadingBubble />}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Message Input */}
@@ -150,6 +223,7 @@ const Chat = () => {
                 placeholder="Ask anything about your documents..."
                 className="pr-20 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                disabled={files.filter(f => f.status === 'completed').length === 0}
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
                 <Button size="sm" variant="ghost" className="p-1 h-8 w-8">
@@ -162,7 +236,7 @@ const Chat = () => {
             </div>
             <Button 
               onClick={handleSendMessage}
-              disabled={!message.trim()}
+              disabled={!message.trim() || files.filter(f => f.status === 'completed').length === 0}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
             >
               <Send className="w-4 h-4" />

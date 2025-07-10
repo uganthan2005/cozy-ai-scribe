@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -24,7 +23,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-
+import { useAppStore } from '@/store/useAppStore';
 const navigationItems = [
   { title: 'Chat', url: '/app/chat', icon: MessageSquare },
   { title: 'Upload PDFs', url: '/app/upload', icon: Upload },
@@ -40,8 +39,11 @@ const accountItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
+  const { files, chatSessions } = useAppStore();
+  
   const currentPath = location.pathname;
   const isCollapsed = state === 'collapsed';
+  const completedFiles = files.filter(f => f.status === 'completed');
 
   const isActive = (path: string) => currentPath === path;
   const getNavClass = (path: string) =>
@@ -85,7 +87,21 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClass(item.url)}>
                       <item.icon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      {!isCollapsed && (
+                        <div className="flex items-center justify-between w-full">
+                          <span>{item.title}</span>
+                          {item.title === 'Chat' && chatSessions.length > 0 && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              {chatSessions.length}
+                            </Badge>
+                          )}
+                          {item.title === 'Upload PDFs' && completedFiles.length > 0 && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              {completedFiles.length}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

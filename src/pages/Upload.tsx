@@ -1,48 +1,26 @@
 
 import { useState, useCallback } from 'react';
 import { Upload as UploadIcon, File, X, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: string;
-  status: 'uploading' | 'processing' | 'completed' | 'error';
-  progress: number;
-  uploadedAt: string;
-}
+import { useAppStore } from '@/store/useAppStore';
+import { PDFLoadingCard, UploadLoadingState } from '@/components/ui/loading-states';
 
 const Upload = () => {
   const [dragActive, setDragActive] = useState(false);
-  const [files, setFiles] = useState<UploadedFile[]>([
-    {
-      id: '1',
-      name: 'Climate Research Report 2024.pdf',
-      size: '2.4 MB',
-      status: 'completed',
-      progress: 100,
-      uploadedAt: '2 hours ago'
-    },
-    {
-      id: '2',
-      name: 'Agricultural Impact Study.pdf',
-      size: '1.8 MB',
-      status: 'completed',
-      progress: 100,
-      uploadedAt: '1 day ago'
-    },
-    {
-      id: '3',
-      name: 'Food Security Analysis.pdf',
-      size: '3.1 MB',
-      status: 'processing',
-      progress: 65,
-      uploadedAt: 'Just now'
-    }
-  ]);
+  const navigate = useNavigate();
+  
+  const { 
+    files, 
+    addFile, 
+    updateFile, 
+    removeFile, 
+    selectFile,
+    setActiveChatId 
+  } = useAppStore();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -66,45 +44,55 @@ const Upload = () => {
 
   const handleFiles = (fileList: FileList) => {
     Array.from(fileList).forEach((file) => {
-      if (file.type === 'application/pdf') {
-        const newFile: UploadedFile = {
-          id: Date.now().toString(),
+      if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+        const fileId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        const newFile = {
+          id: fileId,
           name: file.name,
           size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-          status: 'uploading',
+          status: 'uploading' as const,
           progress: 0,
-          uploadedAt: 'Just now'
+          uploadedAt: 'Just now',
+          type: 'pdf' as const
         };
         
-        setFiles(prev => [newFile, ...prev]);
+        addFile(newFile);
         
         // Simulate upload progress
         const interval = setInterval(() => {
-          setFiles(prev => prev.map(f => {
-            if (f.id === newFile.id) {
-              if (f.progress < 100) {
-                return { ...f, progress: f.progress + 10 };
-              } else {
-                return { ...f, status: 'processing' };
-              }
+          updateFile(fileId, (prev) => {
+            const currentFile = files.find(f => f.id === fileId);
+            if (!currentFile) return {};
+            
+            if (currentFile.progress < 100) {
+              return { progress: currentFile.progress + 10 };
+            } else {
+              return { status: 'processing' };
             }
-            return f;
-          }));
+          });
         }, 200);
 
         // Simulate completion
         setTimeout(() => {
           clearInterval(interval);
-          setFiles(prev => prev.map(f => 
-            f.id === newFile.id ? { ...f, status: 'completed', progress: 100 } : f
-          ));
+          updateFile(fileId, { 
+            status: 'completed', 
+            progress: 100,
+            uploadedAt: new Date().toLocaleString()
+          });
         }, 3000);
       }
     });
   };
 
-  const removeFile = (id: string) => {
-    setFiles(prev => prev.filter(f => f.id !== id));
+  const handleRemoveFile = (id: string) => {
+    removeFile(id);
+  };
+
+  const handleChatWithFile = (fileId: string) => {
+    selectFile(fileId);
+    setActiveChatId(null); // Create new chat
+    navigate('/app/chat');
   };
 
   const getStatusIcon = (status: string) => {
@@ -135,12 +123,20 @@ const Upload = () => {
     }
   };
 
+  const completedFiles = files.filter(f => f.status === 'completed');
+  const processingFiles = files.filter(f => f.status === 'uploading' || f.status === 'processing');
+
   return (
     <div className="h-screen overflow-y-auto bg-gray-50">
       <div className="max-w-4xl mx-auto p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload Documents</h1>
           <p className="text-gray-600">Upload PDF documents and let AI analyze them for instant Q&A</p>
+          {completedFiles.length > 0 && (
+            <p className="text-sm text-green-600 mt-2">
+              {completedFiles.length} document{completedFiles.length !== 1 ? 's' : ''} ready for chat
+            </p>
+          )}
         </div>
 
         {/* Upload Area */}
@@ -191,11 +187,23 @@ const Upload = () => {
           </div>
         </Card>
 
-        {/* Uploaded Files */}
+        {/* Processing Files */}
+        {processingFiles.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Processing Files</h2>
+            <div className="space-y-4">
+              {processingFiles.map((file) => (
+                <PDFLoadingCard key={file.id} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Completed Files */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Your Documents</h2>
-            <span className="text-sm text-gray-500">{files.length} files</span>
+            <span className="text-sm text-gray-500">{files.length} file{files.length !== 1 ? 's' : ''}</span>
           </div>
 
           {files.map((file) => (
@@ -231,14 +239,18 @@ const Upload = () => {
                 
                 <div className="flex items-center space-x-2">
                   {file.status === 'completed' && (
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleChatWithFile(file.id)}
+                    >
                       Chat
                     </Button>
                   )}
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => removeFile(file.id)}
+                    onClick={() => handleRemoveFile(file.id)}
                     className="text-gray-400 hover:text-red-500"
                   >
                     <X className="w-4 h-4" />
