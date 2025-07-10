@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Upload as UploadIcon, File, X, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -60,16 +59,14 @@ const Upload = () => {
         
         // Simulate upload progress
         const interval = setInterval(() => {
-          updateFile(fileId, (prev) => {
-            const currentFile = files.find(f => f.id === fileId);
-            if (!currentFile) return {};
-            
-            if (currentFile.progress < 100) {
-              return { progress: currentFile.progress + 10 };
-            } else {
-              return { status: 'processing' };
-            }
-          });
+          const currentFile = files.find(f => f.id === fileId);
+          if (!currentFile) return;
+          
+          if (currentFile.progress < 100) {
+            updateFile(fileId, { progress: currentFile.progress + 10 });
+          } else {
+            updateFile(fileId, { status: 'processing' });
+          }
         }, 200);
 
         // Simulate completion

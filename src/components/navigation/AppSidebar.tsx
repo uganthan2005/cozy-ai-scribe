@@ -23,7 +23,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store/useAppStore';
+
 const navigationItems = [
   { title: 'Chat', url: '/app/chat', icon: MessageSquare },
   { title: 'Upload PDFs', url: '/app/upload', icon: Upload },
