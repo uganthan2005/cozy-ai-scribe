@@ -9,9 +9,11 @@ import {
   Sparkles,
   Plus,
   History,
-  ArrowLeft,
+  Home,
   Moon,
-  Sun
+  Sun,
+  Menu,
+  X
 } from 'lucide-react';
 import {
   Sidebar,
@@ -22,7 +24,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ const accountItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
@@ -77,16 +78,26 @@ export function AppSidebar() {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
+  const handleHomeClick = () => {
+    navigate('/');
+  };
+
   return (
     <Sidebar className={`${isCollapsed ? 'w-16' : 'w-64'} border-r border-gray-200 dark:border-gray-700 bg-gradient-to-b from-white to-gray-50 dark:from-slate-900 dark:to-slate-800`}>
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div 
+              className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200 transform hover:scale-110"
+              onClick={handleHomeClick}
+            >
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             {!isCollapsed && (
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span 
+                className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:scale-105 transition-transform duration-200"
+                onClick={handleHomeClick}
+              >
                 AI Scribe
               </span>
             )}
@@ -97,7 +108,7 @@ export function AppSidebar() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
               >
                 {theme === 'light' ? (
                   <Moon className="h-4 w-4" />
@@ -109,12 +120,24 @@ export function AppSidebar() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/')}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <Home className="h-4 w-4" />
               </Button>
             </div>
           )}
+        </div>
+        
+        {/* Sidebar Toggle Button */}
+        <div className="mt-4 flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleSidebar}
+            className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+          >
+            {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          </Button>
         </div>
       </div>
 
@@ -146,12 +169,12 @@ export function AppSidebar() {
                         <div className="flex items-center justify-between w-full">
                           <span className="font-medium">{item.title}</span>
                           {item.title === 'Chat' && chatSessions.length > 0 && (
-                            <Badge variant="secondary" className="ml-2 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            <Badge variant="secondary" className="ml-2 text-xs bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700">
                               {chatSessions.length}
                             </Badge>
                           )}
                           {item.title === 'Upload PDFs' && completedFiles.length > 0 && (
-                            <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            <Badge variant="secondary" className="ml-2 text-xs bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700">
                               {completedFiles.length}
                             </Badge>
                           )}
@@ -187,8 +210,6 @@ export function AppSidebar() {
           </SidebarGroup>
         </div>
       </SidebarContent>
-
-      <SidebarTrigger className="absolute top-4 right-4" />
     </Sidebar>
   );
 }
