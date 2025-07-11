@@ -1,13 +1,13 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import { FileText, MessageSquare, Upload, Zap, ChevronRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 const Index = () => {
   const [isHovered, setIsHovered] = useState(false);
-
+  const navigate= useNavigate();
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Navigation */}
@@ -48,6 +48,7 @@ const Index = () => {
 
           <div className="flex items-center justify-center space-x-4 mb-16">
             <Button 
+              onClick={() => navigate('/app/chat')}
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
               onMouseEnter={() => setIsHovered(true)}
