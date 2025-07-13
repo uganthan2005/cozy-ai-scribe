@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StarBorder } from '@/components/ui/star-border';
 import { useAppStore } from '@/store/useAppStore';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
@@ -144,13 +145,18 @@ export function AppSidebar() {
       <SidebarContent className="flex flex-col h-full">
         {!isCollapsed && (
           <div className="p-4">
-            <Button 
+            <StarBorder 
+              as="button" 
               onClick={handleNewChat}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              className="w-full"
+              color="rgb(99, 102, 241)" 
+              speed="4s"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              New Chat
-            </Button>
+              <div className="flex items-center justify-center">
+                <Plus className="w-4 h-4 mr-2" />
+                New Chat
+              </div>
+            </StarBorder>
           </div>
         )}
 

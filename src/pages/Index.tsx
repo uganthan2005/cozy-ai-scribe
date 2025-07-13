@@ -1,9 +1,12 @@
 
 import { useState } from 'react';
 import { Link,useNavigate } from 'react-router-dom';
-import { FileText, MessageSquare, Upload, Zap, ChevronRight, Sparkles } from 'lucide-react';
+import { FileText, MessageSquare, Upload, Zap, ChevronRight, Sparkles, History, Settings, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { SpotlightCard } from '@/components/ui/spotlight-card';
+import { ParticleCard } from '@/components/ui/magic-bento';
+import { StarBorder } from '@/components/ui/star-border';
 
 const Index = () => {
   const [isHovered, setIsHovered] = useState(false);
@@ -57,13 +60,15 @@ const Index = () => {
               Start Asking Questions
               <ChevronRight className={`w-5 h-5 ml-2 transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`} />
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="px-8 py-4 text-lg font-medium border-2 hover:bg-gray-50"
+            <StarBorder 
+              as="button"
+              color="rgb(59, 130, 246)"
+              speed="4s"
+              className="px-8 py-4 text-lg font-medium"
+              onClick={() => navigate('/app/upload')}
             >
-              Watch Demo
-            </Button>
+              Documents
+            </StarBorder>
           </div>
 
           {/* Demo Preview */}
@@ -107,35 +112,86 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="p-8 border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Upload className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Smart Upload</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Drag and drop PDFs or select from your device. Our AI automatically processes and indexes your documents for instant searching.
-              </p>
-            </Card>
+            <ParticleCard enableTilt enableMagnetism glowColor="59, 130, 246">
+              <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.3)">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Upload className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">Smart Upload</h3>
+                <p className="text-gray-300 leading-relaxed">
+                  Drag and drop PDFs or select from your device. Our AI automatically processes and indexes your documents for instant searching.
+                </p>
+              </SpotlightCard>
+            </ParticleCard>
 
-            <Card className="p-8 border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <MessageSquare className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Natural Conversations</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Ask questions in plain English. Our AI understands context and provides detailed answers with exact source citations.
-              </p>
-            </Card>
+            <ParticleCard enableTilt enableMagnetism glowColor="168, 85, 247">
+              <SpotlightCard spotlightColor="rgba(168, 85, 247, 0.3)">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <MessageSquare className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">Natural Conversations</h3>
+                <p className="text-gray-300 leading-relaxed">
+                  Ask questions in plain English. Our AI understands context and provides detailed answers with exact source citations.
+                </p>
+              </SpotlightCard>
+            </ParticleCard>
 
-            <Card className="p-8 border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Source Transparency</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Every answer includes specific page references and quotes, so you can verify information and dive deeper into the source material.
-              </p>
-            </Card>
+            <ParticleCard enableTilt enableMagnetism glowColor="34, 197, 94">
+              <SpotlightCard spotlightColor="rgba(34, 197, 94, 0.3)">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">Source Transparency</h3>
+                <p className="text-gray-300 leading-relaxed">
+                  Every answer includes specific page references and quotes, so you can verify information and dive deeper into the source material.
+                </p>
+              </SpotlightCard>
+            </ParticleCard>
+          </div>
+          
+          {/* Quick Access Cards */}
+          <div className="mt-16 grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <Link to="/app/chat">
+              <ParticleCard enableTilt enableMagnetism glowColor="59, 130, 246" className="cursor-pointer">
+                <SpotlightCard spotlightColor="rgba(59, 130, 246, 0.3)" className="h-full">
+                  <div className="flex items-center space-x-3">
+                    <MessageSquare className="w-8 h-8 text-blue-400" />
+                    <div>
+                      <h4 className="text-lg font-semibold text-white">Start Chat</h4>
+                      <p className="text-gray-400 text-sm">Ask questions now</p>
+                    </div>
+                  </div>
+                </SpotlightCard>
+              </ParticleCard>
+            </Link>
+            
+            <Link to="/app/upload">
+              <ParticleCard enableTilt enableMagnetism glowColor="34, 197, 94" className="cursor-pointer">
+                <SpotlightCard spotlightColor="rgba(34, 197, 94, 0.3)" className="h-full">
+                  <div className="flex items-center space-x-3">
+                    <Upload className="w-8 h-8 text-green-400" />
+                    <div>
+                      <h4 className="text-lg font-semibold text-white">Upload PDF</h4>
+                      <p className="text-gray-400 text-sm">Add documents</p>
+                    </div>
+                  </div>
+                </SpotlightCard>
+              </ParticleCard>
+            </Link>
+            
+            <Link to="/app/history">
+              <ParticleCard enableTilt enableMagnetism glowColor="249, 115, 22" className="cursor-pointer">
+                <SpotlightCard spotlightColor="rgba(249, 115, 22, 0.3)" className="h-full">
+                  <div className="flex items-center space-x-3">
+                    <History className="w-8 h-8 text-orange-400" />
+                    <div>
+                      <h4 className="text-lg font-semibold text-white">View History</h4>
+                      <p className="text-gray-400 text-sm">Past conversations</p>
+                    </div>
+                  </div>
+                </SpotlightCard>
+              </ParticleCard>
+            </Link>
           </div>
         </div>
       </div>
@@ -149,12 +205,15 @@ const Index = () => {
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Join thousands of researchers, students, and professionals who are already using AI Scribe to unlock insights from their PDFs.
           </p>
-          <Button 
-            size="lg"
+          <StarBorder 
+            as="button"
+            color="rgba(255, 255, 255, 0.8)"
+            speed="5s"
             className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={() => navigate('/app/chat')}
           >
             Get Started Free
-          </Button>
+          </StarBorder>
         </div>
       </div>
 
